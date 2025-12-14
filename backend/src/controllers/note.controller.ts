@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Note } from '../src/models/note.model';
+import { Note } from '../models/note.model';
 
 export const listNotes = async (req: Request, res: Response) => {
   const notes = await Note.findAll();

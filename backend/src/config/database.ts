@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize';
-import { initNoteModel } from '../src/models/note.model';
+import { initNoteModel } from '../models/note.model';
 import dotenv from 'dotenv';
 
 dotenv.config();
