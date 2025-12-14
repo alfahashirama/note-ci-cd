@@ -13,23 +13,23 @@ spec:
         app: backend
     spec:
       containers:
-      - name: backend
-        image: LOCATION-docker.pkg.dev/PROJECT_ID/note-repo/backend:latest  # À remplacer plus tard
-        ports:
-        - containerPort: 5000
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: db-secret
-              key: url
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
+        - name: backend
+          image: us-central1-docker.pkg.dev/note-ci-cd-project-123456/note-repo/backend:latest 
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: url
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -40,5 +40,5 @@ spec:
     app: backend
   ports:
     - port: 5000
-    targetPort: 5000
+      targetPort: 5000
   type: ClusterIP

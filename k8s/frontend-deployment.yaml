@@ -13,17 +13,17 @@ spec:
         app: frontend
     spec:
       containers:
-      - name: frontend
-        image: LOCATION-docker.pkg.dev/PROJECT_ID/note-repo/frontend:latest
-        ports:
-        - containerPort: 80
-        env:
-        - name: VITE_API_URL
-          value: "https://ton-domaine/api"  # Ou via Ingress
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
+        - name: frontend
+          image: us-central1-docker.pkg.dev/note-ci-cd-project-123456/note-repo/frontend:latest  
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
 ---
 apiVersion: v1
 kind: Service
@@ -34,5 +34,5 @@ spec:
     app: frontend
   ports:
     - port: 80
-    targetPort: 80
-  type: LoadBalancer  # Pour exposer publiquement (IP externe)
+      targetPort: 80
+  type: LoadBalancer
