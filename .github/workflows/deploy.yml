@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:  # Permet de lancer manuellement
+  workflow_dispatch:
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: us-central1              # ⚠️ Change si tu as choisi une autre région
+  REGION: us-central1              # ⚠️ Change si ta région est différente (ex: europe-west1)
   GAR_REPO: note-repo
   BACKEND_IMAGE: backend
   FRONTEND_IMAGE: frontend
@@ -19,13 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write                 # Obligatoire pour Workload Identity Federation
+      id-token: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Authentification GCP via Workload Identity (keyless !)
+      # Auth GCP via Workload Identity (keyless)
       - name: Authenticate to Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
@@ -33,8 +33,11 @@ jobs:
           workload_identity_provider: projects/240159939812/locations/global/workloadIdentityPools/github-pool/providers/github-provider
           service_account: github-actions-sa@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
 
+      # Setup gcloud + installation du plugin obligatoire pour kubectl sur GKE
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: gke-gcloud-auth-plugin
 
       # Configure Docker pour push vers Artifact Registry
       - name: Configure Docker for GAR
@@ -55,12 +58,12 @@ jobs:
           docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.FRONTEND_IMAGE }}:latest .
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.FRONTEND_IMAGE }}:latest
 
-      # Connexion au cluster GKE
+      # Connexion au cluster GKE (action officielle, gère le plugin automatiquement)
       - name: Get GKE Credentials
-        run: |
-          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} \
-            --region ${{ env.REGION }} \
-            --project ${{ env.PROJECT_ID }}
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.CLUSTER_NAME }}
+          location: ${{ env.REGION }}
 
       # Déploiement Kubernetes
       - name: Deploy to GKE
@@ -74,5 +77,5 @@ jobs:
       - name: Success Message
         run: |
           echo "🚀 Déploiement réussi !"
-          echo "Frontend accessible via l'IP du Service frontend-service (LoadBalancer)"
-          echo "Vérifie avec : kubectl get svc frontend-service"
+          echo "Frontend accessible via :"
+          kubectl get service frontend-service
