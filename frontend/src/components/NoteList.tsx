@@ -9,8 +9,9 @@ interface Note {
   note: number;
 }
 
-// URL API dynamique : utilise l'env var en production, localhost en dev
-const API_BASE = import.meta.env.VITE_API_URL || 'http://backend-service:5000';
+// URL API : en production = chemin relatif /api → même origine, pas de CORS
+// en dev local = fallback localhost
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export default function NoteList() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -19,12 +20,12 @@ export default function NoteList() {
 
   const fetchNotes = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/notes`);
+      const res = await axios.get(`${API_BASE}/notes`);
       setNotes(res.data);
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('Impossible de charger les notes. Vérifiez que le backend est en marche.');
+      setError('Impossible de charger les notes. Vérifiez votre connexion ou que le serveur est en marche.');
     } finally {
       setLoading(false);
     }
@@ -38,58 +39,63 @@ export default function NoteList() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette note ?')) return;
 
     try {
-      await axios.delete(`${API_BASE}/api/notes/${id}`);
-      fetchNotes(); // Rafraîchir la liste
+      await axios.delete(`${API_BASE}/notes/${id}`);
+      fetchNotes();
     } catch (err) {
       alert('Erreur lors de la suppression');
     }
   };
 
   if (loading) {
-    return <p className="text-center text-gray-600">Chargement des notes...</p>;
+    return <p className="text-center text-gray-600 text-lg">Chargement des notes...</p>;
   }
 
   if (error) {
-    return <p className="text-center text-red-600">{error}</p>;
+    return <p className="text-center text-red-600 text-lg">{error}</p>;
   }
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Liste des Notes</h2>
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-800">Liste des Notes Universitaires</h2>
         <Link
           to="/add"
-          className="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded transition"
+          className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg shadow transition"
         >
           Ajouter une note
         </Link>
       </div>
 
       {notes.length === 0 ? (
-        <p className="text-center text-gray-500">Aucune note enregistrée pour le moment.</p>
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <p className="text-xl text-gray-500">Aucune note enregistrée pour le moment.</p>
+          <Link to="/add" className="text-blue-600 hover:underline mt-4 inline-block">
+            → Ajouter la première note
+          </Link>
+        </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-300 bg-white shadow-md">
-            <thead className="bg-gray-100">
+        <div className="overflow-x-auto shadow-lg rounded-lg">
+          <table className="w-full border-collapse bg-white">
+            <thead className="bg-blue-600 text-white">
               <tr>
-                <th className="border border-gray-300 px-6 py-3 text-left">Étudiant</th>
-                <th className="border border-gray-300 px-6 py-3 text-left">Matière</th>
-                <th className="border border-gray-300 px-6 py-3 text-center">Note</th>
-                <th className="border border-gray-300 px-6 py-3 text-center">Actions</th>
+                <th className="px-6 py-4 text-left">Étudiant</th>
+                <th className="px-6 py-4 text-left">Matière</th>
+                <th className="px-6 py-4 text-center">Note</th>
+                <th className="px-6 py-4 text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {notes.map((note) => (
-                <tr key={note.id} className="hover:bg-gray-50">
-                  <td className="border border-gray-300 px-6 py-3">{note.etudiant}</td>
-                  <td className="border border-gray-300 px-6 py-3">{note.matiere}</td>
-                  <td className="border border-gray-300 px-6 py-3 text-center font-medium">
+                <tr key={note.id} className="border-b hover:bg-gray-50 transition">
+                  <td className="px-6 py-4">{note.etudiant}</td>
+                  <td className="px-6 py-4">{note.matiere}</td>
+                  <td className="px-6 py-4 text-center font-semibold text-lg">
                     {note.note}/20
                   </td>
-                  <td className="border border-gray-300 px-6 py-3 text-center">
+                  <td className="px-6 py-4 text-center">
                     <Link
                       to={`/edit/${note.id}`}
-                      className="text-blue-600 hover:underline mr-4 font-medium"
+                      className="text-blue-600 hover:underline font-medium mr-6"
                     >
                       Éditer
                     </Link>
