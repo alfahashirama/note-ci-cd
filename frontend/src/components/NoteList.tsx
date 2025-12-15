@@ -10,7 +10,7 @@ interface Note {
 }
 
 // URL API dynamique : utilise l'env var en production, localhost en dev
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://backend-service:5000';
 
 export default function NoteList() {
   const [notes, setNotes] = useState<Note[]>([]);
