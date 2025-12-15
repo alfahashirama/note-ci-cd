@@ -15,11 +15,18 @@ app.use(express.json());
 app.use('/api/notes', noteRoutes);
 
 app.get('/', (req, res) => {
-  res.send('Backend Notes Universitaires avec Sequelize - API CRUD prête !');
+  res.send('Backend Notes Universitaires - API CRUD prête !');
 });
 
-sequelize.sync({ alter: false }).then(() => {  // En dev : { force: true } pour reset
-  app.listen(PORT, () => {
-    console.log(`Serveur démarré sur http://localhost:${PORT}`);
+// Synchronisation + migrations au démarrage (safe en prod)
+sequelize.sync({ alter: true })  // { alter: true } applique les changements sans perdre les données
+  .then(() => {
+    console.log('✅ Base de données synchronisée avec succès');
+    app.listen(PORT, () => {
+      console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
+    });
+  })
+  .catch((err: any) => {
+    console.error('❌ Erreur lors de la synchronisation DB :', err);
+    process.exit(1);
   });
-});
